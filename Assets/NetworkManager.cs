@@ -64,7 +64,7 @@ using ExitGames.Client.Photon;
 
 //}
 
-public class NetworkManager : MonoBehaviourPunCallbacks
+public class NetworkManager : MonoBehaviour
 {
     public static NetworkManager instance = null;
     public static PhotonView pView
@@ -106,38 +106,51 @@ public class NetworkManager : MonoBehaviourPunCallbacks
             Destroy(this.gameObject);
     }
 
-    public override void OnDisconnected(DisconnectCause cause)
+    public bool send = false;
+    private void Update()
     {
-        Debug.Log("Failed to connect to the server: " + cause.ToString(), this);
+        if (send)
+        {
+            send = false;
+            Debug.Log("Send player data now");
+            byte[] bb1 = { 0x22, 0x33 };
+            byte[] bb2 = { 0x12, 0x43 };
+            pView.RPC("RPC_SyncArray", RpcTarget.All, bb1, bb2);
+        }
     }
 
-    public override void OnJoinedLobby()
-    {
-        Debug.Log("Joined into the lobby");
-    }
+    //public override void OnDisconnected(DisconnectCause cause)
+    //{
+    //    Debug.Log("Failed to connect to the server: " + cause.ToString(), this);
+    //}
 
-    public override void OnCreatedRoom()
-    {
-        Debug.Log("Created room successfully", this);
-    }
+    //public override void OnJoinedLobby()
+    //{
+    //    Debug.Log("Joined into the lobby");
+    //}
 
-    public override void OnPlayerEnteredRoom(Player newPlayer)
-    {
-        Debug.Log("Player entered into the room", this);
-        byte[] bb1 = {0x22, 0x33 };
-        byte[] bb2 = { 0x12, 0x43 };
-        pView.RPC("RPC_SyncArray", RpcTarget.All, bb1, bb2);
-    }
+    //public override void OnCreatedRoom()
+    //{
+    //    Debug.Log("Created room successfully", this);
+    //}
 
-    public override void OnPlayerLeftRoom(Player otherPlayer)
-    {
-        Debug.Log("Player left the room", this);
-    }
+    //public override void OnPlayerEnteredRoom(Player newPlayer)
+    //{
+    //    Debug.Log("Player entered into the room", this);
+    //    byte[] bb1 = {0x22, 0x33 };
+    //    byte[] bb2 = { 0x12, 0x43 };
+    //    pView.RPC("RPC_SyncArray", RpcTarget.All, bb1, bb2);
+    //}
 
-    public override void OnJoinedRoom()
-    {
-        Debug.Log($"Joined into the room, actor number = {actor}", this);
-    }
+    //public override void OnPlayerLeftRoom(Player otherPlayer)
+    //{
+    //    Debug.Log("Player left the room", this);
+    //}
+
+    //public override void OnJoinedRoom()
+    //{
+    //    Debug.Log($"Joined into the room, actor number = {actor}", this);
+    //}
 
     [PunRPC]
     public void RPC_SyncArray(byte[] bb1, byte[] bb2)
