@@ -5,64 +5,65 @@ using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 using ExitGames.Client.Photon;
+using System.Runtime.Serialization.Formatters.Binary;
 
-//public class PlayerData
-//{
-//    internal static void Register()
-//    {
-//        NetworkManager.isRegisterType = PhotonPeer.RegisterType(typeof(PlayerData), 0x89, Serialize, Deserialize);
-//        Debug.Log("RegisterType = " + NetworkManager.isRegisterType);
-//    }
+public class PlayerData
+{
+    //internal static void Register()
+    //{
+    //    NetworkManager.isRegisterType = PhotonPeer.RegisterType(typeof(PlayerData), 0x89, Serialize, Deserialize);
+    //    Debug.Log("RegisterType = " + NetworkManager.isRegisterType);
+    //}
 
-//    public int actorNumber { get; set; }    // PhotonView id
-//    public string sword { get; set; }   // Sword name
-//    public bool inArena { get; set; }   // In Trigger arena
+    public int actorNumber { get; set; }    // PhotonView id
+    public string sword { get; set; }   // Sword name
+    public bool inArena { get; set; }   // In Trigger arena
 
-//    public PlayerData()
-//    {
-//        actorNumber = 0;
-//        sword = "";
-//        inArena = false;
-//    }
+    public PlayerData()
+    {
+        actorNumber = 0;
+        sword = "";
+        inArena = false;
+    }
 
-//    public void SetProperty(PlayerData _player)
-//    {
-//        this.actorNumber = _player.actorNumber;
-//        this.sword = _player.sword;
-//        this.inArena = _player.inArena;
-//    }
+    //public void SetProperty(PlayerData _player)
+    //{
+    //    this.actorNumber = _player.actorNumber;
+    //    this.sword = _player.sword;
+    //    this.inArena = _player.inArena;
+    //}
 
-//    public static object Deserialize(byte[] data)
-//    {
-//        PlayerData result = new PlayerData();
-//        using (MemoryStream m = new MemoryStream(data))
-//        {
-//            using (BinaryReader reader = new BinaryReader(m))
-//            {
-//                result.actorNumber = reader.ReadInt32();
-//                result.sword = reader.ReadString();
-//                result.inArena = reader.ReadBoolean();
-//            }
-//        }
-//        return result;
-//    }
+    public static object Deserialize(byte[] data)
+    {
+        PlayerData result = new PlayerData();
+        using (MemoryStream m = new MemoryStream(data))
+        {
+            using (BinaryReader reader = new BinaryReader(m))
+            {
+                result.actorNumber = reader.ReadInt32();
+                result.sword = reader.ReadString();
+                result.inArena = reader.ReadBoolean();
+            }
+        }
+        return result;
+    }
 
-//    public static byte[] Serialize(object customType)
-//    {
-//        var c = (PlayerData)customType;
-//        using (MemoryStream m = new MemoryStream())
-//        {
-//            using (BinaryWriter writer = new BinaryWriter(m))
-//            {
-//                writer.Write(c.actorNumber);
-//                writer.Write(c.sword);
-//                writer.Write(c.inArena);
-//            }
-//            return m.ToArray();
-//        }
-//    }
+    public static byte[] Serialize(object customType)
+    {
+        var c = (PlayerData)customType;
+        using (MemoryStream m = new MemoryStream())
+        {
+            using (BinaryWriter writer = new BinaryWriter(m))
+            {
+                writer.Write(c.actorNumber);
+                writer.Write(c.sword);
+                writer.Write(c.inArena);
+            }
+            return m.ToArray();
+        }
+    }
 
-//}
+}
 
 public class NetworkManager : MonoBehaviour
 {
@@ -113,7 +114,12 @@ public class NetworkManager : MonoBehaviour
         {
             send = false;
             Debug.Log("Send player data now");
-            byte[] bb1 = { 0x22, 0x33 };
+            PlayerData pd1 = new PlayerData();
+            pd1.actorNumber = 3;
+            pd1.sword = "aaaaddd";
+            pd1.inArena = true;
+
+            byte[] bb1 = PlayerData.Serialize(pd1);
             byte[] bb2 = { 0x12, 0x43 };
             pView.RPC("RPC_SyncArray", RpcTarget.All, bb1, bb2);
         }
@@ -155,7 +161,34 @@ public class NetworkManager : MonoBehaviour
     [PunRPC]
     public void RPC_SyncArray(byte[] bb1, byte[] bb2)
     {
+        PlayerData pd = PlayerData.Deserialize(bb1) as PlayerData;
         Debug.Log(bb1[0] + ":" + bb2[1]);
+        Debug.Log(pd.actorNumber + ":" + pd.sword + ":" + pd.inArena);
     }
+
+    //// Convert an object to a byte array
+    //private byte[] ObjectToByteArray(object obj)
+    //{
+    //    if (obj == null)
+    //        return null;
+
+    //    BinaryFormatter bf = new BinaryFormatter();
+    //    MemoryStream ms = new MemoryStream();
+    //    bf.Serialize(ms, obj);
+
+    //    return ms.ToArray();
+    //}
+
+    //// Convert a byte array to an Object
+    //private object ByteArrayToObject(byte[] arrBytes)
+    //{
+    //    MemoryStream memStream = new MemoryStream();
+    //    BinaryFormatter binForm = new BinaryFormatter();
+    //    memStream.Write(arrBytes, 0, arrBytes.Length);
+    //    memStream.Seek(0, SeekOrigin.Begin);
+    //    object obj = (object)binForm.Deserialize(memStream);
+
+    //    return obj;
+    //}
 
 }
